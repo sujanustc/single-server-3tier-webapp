@@ -92,6 +92,22 @@ resource "aws_security_group" "sujan_bastion_ostad_sg" {
         cidr_blocks = ["0.0.0.0/0"]
     }
 
+    ingress {
+        description = "http access"
+        from_port   = 80
+        to_port     = 80
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        description = "https access"
+        from_port   = 443
+        to_port     = 443
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
     egress {
         from_port   = 0
         to_port     = 0
@@ -112,23 +128,19 @@ resource "aws_security_group" "sujan_private_ostad_sg" {
         security_groups = [aws_security_group.sujan_bastion_ostad_sg.id]
     }
 
+    ingress {
+        description     = "api access"
+        from_port       = 3000
+        to_port         = 3000
+        protocol        = "tcp"
+        security_groups = [aws_security_group.sujan_bastion_ostad_sg.id]
+    }
+
     egress {
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
         cidr_blocks = ["0.0.0.0/0"]
-    }
-}
-
-resource "aws_instance" "sujan_bastion_ostad" {
-    ami                    = "ami-07a00cf47dbbc844c"
-    instance_type          = "t2.small"
-    subnet_id              = aws_subnet.sujan_public_subnet_1.id
-    vpc_security_group_ids = [aws_security_group.sujan_bastion_ostad_sg.id]
-    key_name               = var.key_pair_name
-
-    tags = {
-        Name = "sujan_bastion_ostad"
     }
 }
 
@@ -139,9 +151,34 @@ resource "aws_instance" "sujan_private_ostad" {
     vpc_security_group_ids = [aws_security_group.sujan_private_ostad_sg.id]
     key_name               = var.key_pair_name
 
+    user_data = templatefile("${path.module}/scripts/sujan_backend_bootstrap.sh", {
+        db_name      = var.db_name
+        db_user      = var.db_user
+        db_password  = var.db_password
+        git_repo_url = var.git_repo_url
+    })
+
     tags = {
         Name = "sujan_private_ostad"
     }
+}
+
+resource "aws_instance" "sujan_bastion_ostad" {
+    ami                    = "ami-07a00cf47dbbc844c"
+    instance_type          = "t2.small"
+    subnet_id              = aws_subnet.sujan_public_subnet_1.id
+    vpc_security_group_ids = [aws_security_group.sujan_bastion_ostad_sg.id]
+    key_name               = var.key_pair_name
+
+    user_data = templatefile("${path.module}/scripts/sujan_frontend_bootstrap.sh", {
+        backend_private_ip = aws_instance.sujan_private_ostad.private_ip
+    })
+
+    tags = {
+        Name = "sujan_bastion_ostad"
+    }
+
+    depends_on = [aws_instance.sujan_private_ostad]
 }
 
 output "sujan_bastion_ostad_ip" {
