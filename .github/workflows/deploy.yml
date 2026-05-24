@@ -1,0 +1,69 @@
+name: Deploy 3-Tier Application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy Frontend and Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Set up SSH Key and Config
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          
+          cat >> ~/.ssh/config <<EOF
+          Host bastion
+            HostName ${{ secrets.FRONTEND_HOST }}
+            User ubuntu
+            IdentityFile ~/.ssh/id_rsa
+            StrictHostKeyChecking no
+
+          Host backend
+            HostName ${{ secrets.BACKEND_HOST }}
+            User ubuntu
+            IdentityFile ~/.ssh/id_rsa
+            ProxyJump bastion
+            StrictHostKeyChecking no
+          EOF
+
+      - name: Deploy Frontend to Nginx
+        run: |
+          # Compress built frontend assets
+          tar -czf frontend.tar.gz -C frontend/dist .
+          
+          # Upload to bastion (Frontend host)
+          scp frontend.tar.gz bastion:/tmp/frontend.tar.gz
+          
+          # Extract to Nginx web root and reload Nginx
+          ssh bastion "sudo mkdir -p /var/www/bmi-health-tracker && sudo rm -rf /var/www/bmi-health-tracker/* && sudo tar -xzf /tmp/frontend.tar.gz -C /var/www/bmi-health-tracker/ && sudo chown -R www-data:www-data /var/www/bmi-health-tracker && sudo chmod -R 755 /var/www/bmi-health-tracker && sudo systemctl reload nginx"
+
+      - name: Deploy Backend to PM2
+        run: |
+          # Compress backend source code (excluding node_modules and environment file)
+          tar -czf backend.tar.gz --exclude=node_modules --exclude=.env --exclude=logs -C backend .
+          
+          # Upload to backend host via Bastion proxy
+          scp backend.tar.gz backend:/tmp/backend.tar.gz
+          
+          # Extract and restart the backend application
+          ssh backend "sudo mkdir -p /opt/bmi-app/backend && sudo chown -R ubuntu:ubuntu /opt/bmi-app && tar -xzf /tmp/backend.tar.gz -C /opt/bmi-app/backend/ && cd /opt/bmi-app/backend && npm install --production && pm2 restart bmi-backend || pm2 start src/server.js --name bmi-backend --env production && pm2 save"
