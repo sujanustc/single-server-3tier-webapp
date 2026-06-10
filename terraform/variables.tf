@@ -13,14 +13,8 @@ variable "project_name" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "t2.micro"
+  default     = "t2.medium"
 }
-
-variable "key_name" {
-  description = "Name of the SSH key pair to access the EC2 instance"
-  type        = string
-}
-
 
 variable "key_pair_name" {
   description = "Name of the SSH key pair to access the EC2 instance"
@@ -45,12 +39,17 @@ variable "db_user" {
   default     = "bmi_user"
 }
 
-variable "git_repo_url" {
-  description = "Git repository URL for cloning the application"
+variable "grafana_admin_password" {
+  description = "Admin password for Grafana"
   type        = string
-  default     = "https://github.com/sujanustc/single-server-3tier-webapp.git"
+  sensitive   = true
 }
 
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed for SSH access"
+  type        = string
+  default     = "0.0.0.0/0"
+}
 
 variable "aws_access_key" {
   description = "AWS Access Key ID"
