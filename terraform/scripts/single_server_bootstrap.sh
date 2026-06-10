@@ -53,9 +53,11 @@ chmod 600 /opt/bmi-app/backend/.env
 chown ubuntu:ubuntu /opt/bmi-app/backend/.env
 
 # grafana admin password store for setup-monitoring.sh
-mkdir -p /etc/bmi
-echo "$${GRAFANA_ADMIN_PASSWORD}" > /etc/bmi/grafana_admin_password
-chmod 600 /etc/bmi/grafana_admin_password
+if [ -n "$${GRAFANA_ADMIN_PASSWORD}" ]; then
+  mkdir -p /etc/bmi
+  echo "$${GRAFANA_ADMIN_PASSWORD}" > /etc/bmi/grafana_admin_password
+  chmod 600 /etc/bmi/grafana_admin_password
+fi
 
 # monitoring dirs
 mkdir -p /etc/prometheus /var/lib/prometheus /etc/loki /etc/promtail /tmp/loki/chunks /tmp/loki/rules /tmp/loki/boltdb-shipper-active /tmp/loki/boltdb-shipper-cache
