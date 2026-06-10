@@ -180,10 +180,10 @@ After successful deployment:
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| Application | `http://<EC2_PUBLIC_IP>` | — |
-| Grafana | `http://<EC2_PUBLIC_IP>:3001` | `admin` / your `grafana_admin_password` |
-| Prometheus | `http://<EC2_PUBLIC_IP>:9090` | — |
-| Loki | `http://<EC2_PUBLIC_IP>:3100` | — |
+| Application | `http://52.66.62.186` | — |
+| Grafana | `http://52.66.62.186:3001` | `admin` / your `grafana_admin_password` |
+| Prometheus | `http://52.66.62.186:9090` | — |
+| Loki | `http://52.66.62.186:3100` | — |
 
 Grafana datasources (auto-provisioned):
 - **Prometheus** → `http://localhost:9090`
@@ -209,21 +209,38 @@ Dashboard is auto-loaded via Grafana provisioning on each deploy.
 
 ---
 
-## Submission Checklist
 
-Upload this repository to GitHub and capture screenshots for:
 
-- [ ] **Terraform deployment** — `terraform apply` success output → save to `docs/screenshots/terraform_apply.png`
-- [ ] **CI/CD pipeline** — green GitHub Actions run → `docs/screenshots/github_actions.png`
-- [ ] **Grafana dashboard** — CPU, Memory, Disk, Network panels → `docs/screenshots/grafana_dashboard.png`
-- [ ] **Loki logs** — log panel in Grafana showing system/nginx/pm2 logs → `docs/screenshots/loki_logs.png`
+---
 
-**Repository must include:**
+## Verification Screenshots
 
-- [x] Terraform configuration files (`terraform/`)
-- [x] CI/CD pipeline (`.github/workflows/deploy.yml`)
-- [x] Grafana dashboard JSON (`monitoring/grafana/dashboards/system-monitoring.json`)
-- [x] Documentation (this README)
+Here are the proof screenshots for the submission requirements:
+
+### 1. Terraform Deployment Success
+Successful resource provisioning (`terraform apply` output):
+![Terraform Apply Output](docs/screenshots/terraform_apply.png)
+
+### 2. Successful CI/CD Pipeline Execution
+Green GitHub Actions workflow run:
+![GitHub Actions Run](docs/screenshots/success_ci-cd_github.png)
+
+### 3. Grafana Dashboard
+Custom System Monitoring Dashboard displaying CPU, Memory, Disk, and Network traffic:
+![Grafana Dashboard](docs/screenshots/grafina_dashboard.png)
+*(Detailed metrics drilldown: ![Grafana Metrics Drilldown](docs/screenshots/grafana_matrx_drilldown.png))*
+
+### 4. Loki Log Visualization
+Aggregated system, service, and application logs in Loki:
+![Loki Logs Query](docs/screenshots/loki_logs_query_page.png)
+
+### 5. Prometheus Dashboard
+Active target metrics scraped:
+![Prometheus Dashboard](docs/screenshots/promethious_dashboard.png)
+
+### 6. Running Application
+Verified application running in browser:
+![Running Frontend](docs/screenshots/running_frontend.png)
 
 ---
 
@@ -232,7 +249,7 @@ Upload this repository to GitHub and capture screenshots for:
 ### Check service status on EC2
 
 ```bash
-ssh -i your-key.pem ubuntu@<EC2_PUBLIC_IP>
+ssh -i sujan-key.pem ubuntu@52.66.62.186
 sudo systemctl status nginx postgresql node_exporter prometheus loki promtail grafana-server
 pm2 status
 ```
