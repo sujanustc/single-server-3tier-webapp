@@ -82,11 +82,15 @@ jobs:
           echo "Checking Prometheus..."
           curl -sf http://localhost:9090/-/healthy
           echo ""
+          echo "Waiting for Loki to start..."
+          for i in {1..15}; do
+            curl -sf http://localhost:3100/ready >/dev/null && break || sleep 2
+          done
           echo "Checking Loki..."
           curl -sf http://localhost:3100/ready
           echo ""
           echo "Checking Nginx..."
-          curl -sf http://localhost/ | head -c 200
+          curl -sfI http://localhost/
           echo ""
           echo "All health checks passed."
           REMOTE

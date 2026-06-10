@@ -54,4 +54,25 @@ router.get('/measurements/trends',async(req,res)=>{
   }
 });
 
+// GET /api/logs/success - Generate dummy success log
+router.get('/logs/success', (req, res) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[INFO] [${timestamp}] SUCCESS: Dummy success endpoint was hit. Status OK.`);
+  res.json({ status: 'success', message: 'Success log generated successfully', timestamp });
+});
+
+// GET /api/logs/warning - Generate dummy warning log
+router.get('/logs/warning', (req, res) => {
+  const timestamp = new Date().toISOString();
+  console.warn(`[WARN] [${timestamp}] WARNING: Dummy warning endpoint hit. High CPU warning simulation.`);
+  res.json({ status: 'warning', message: 'Warning log generated successfully', timestamp });
+});
+
+// GET /api/logs/error - Generate dummy error log
+router.get('/logs/error', (req, res) => {
+  const timestamp = new Date().toISOString();
+  console.error(`[ERROR] [${timestamp}] ERROR: Dummy error endpoint hit. Database connection simulation failed.`);
+  res.status(500).json({ status: 'error', message: 'Error log generated successfully', timestamp });
+});
+
 module.exports=router;
