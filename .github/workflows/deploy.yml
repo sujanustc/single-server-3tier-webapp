@@ -30,8 +30,8 @@ jobs:
         run: |
           tar -czf frontend.tar.gz -C frontend/dist .
           tar -czf backend.tar.gz --exclude=node_modules --exclude=.env --exclude=logs -C backend .
-          tar -czf monitoring.tar.gz -C monitoring .
-          tar -czf scripts.tar.gz -C scripts .
+          tar -czf monitoring.tar.gz monitoring
+          tar -czf scripts.tar.gz scripts
 
       - name: Set up SSH
         run: |
